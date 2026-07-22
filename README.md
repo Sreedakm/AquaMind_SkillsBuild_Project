@@ -105,5 +105,5 @@ Develop a **Multi-Agent AI system** that retrieves country-specific water data, 
 ---
 
 <p align="center">
-Made with ❤️ for <b>IBM SkillsBuild</b> and <b>SDG 6 – Clean Water & Sanitation</b>.
+Made with ❤️ for <b>IBM SkillsBuild</b> 
 </p>
