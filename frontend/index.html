@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaMind — Water Stress Decision Support</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #0A2436;
+    --ink-deep: #071A28;
+    --panel: #0F3247;
+    --panel-raised: #133C54;
+    --teal: #1E8A96;
+    --aqua: #5EEAD4;
+    --amber: #E8A33D;
+    --mist: #EAF3F1;
+    --slate: #92A9B8;
+    --line: rgba(234,243,241,0.12);
+    --radius: 14px;
+    --disp: 'Fraunces', serif;
+    --head: 'Space Grotesk', sans-serif;
+    --body: 'Inter', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 500px at 15% -10%, rgba(30,138,150,0.20), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(94,234,212,0.10), transparent 55%),
+      var(--ink);
+    color: var(--mist);
+    font-family: var(--body);
+    line-height: 1.55;
+    min-height: 100vh;
+  }
+
+  a, button{ font-family: inherit; }
+
+  ::selection{ background: var(--teal); color: var(--ink-deep); }
+
+  :focus-visible{
+    outline: 2px solid var(--aqua);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  .wrap{
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 24px 96px;
+  }
+
+  /* ---------- Header ---------- */
+  header.top{
+    padding: 28px 24px 0;
+    max-width: 1080px;
+    margin: 0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 16px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    font-family: var(--head);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    font-size: 15px;
+    color: var(--mist);
+  }
+  .brand .drop{
+    width: 12px; height: 12px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    background: linear-gradient(160deg, var(--aqua), var(--teal));
+    box-shadow: 0 0 12px rgba(94,234,212,0.55);
+    flex: none;
+  }
+  .sdg-badge{
+    display:flex; align-items:center; gap:8px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    color: var(--slate);
+    border: 1px solid var(--line);
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(234,243,241,0.03);
+  }
+  .sdg-badge b{
+    color: var(--aqua);
+    font-weight: 600;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding: 56px 0 44px;
+    text-align: center;
+    position: relative;
+  }
+  .hero h1{
+    font-family: var(--disp);
+    font-weight: 600;
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    margin: 0 0 14px;
+    letter-spacing: -0.01em;
+  }
+  .hero h1 .accent{ color: var(--aqua); font-style: italic; }
+  .hero p{
+    max-width: 560px;
+    margin: 0 auto;
+    color: var(--slate);
+    font-size: 16px;
+  }
+
+  .wave{
+    display:block;
+    margin: 34px auto 0;
+    width: min(100%, 640px);
+    height: 46px;
+  }
+  .wave path{
+    fill:none;
+    stroke: url(#waveGrad);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    animation: waveShift 7s ease-in-out infinite;
+  }
+  @keyframes waveShift{
+    0%,100%{ transform: translateY(0); }
+    50%{ transform: translateY(-5px); }
+  }
+
+  /* ---------- Control panel ---------- */
+  .panel{
+    background: linear-gradient(180deg, var(--panel-raised), var(--panel));
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 28px;
+    box-shadow: 0 20px 50px -20px rgba(0,0,0,0.55);
+  }
+  .panel-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap: 12px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+  }
+  .panel-head h2{
+    font-family: var(--head);
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 0;
+  }
+  .panel-head .hint{
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--slate);
+  }
+
+  .controls{
+    display:grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 16px;
+    align-items: end;
+  }
+  @media (max-width: 640px){
+    .controls{ grid-template-columns: 1fr; }
+  }
+
+  .field label{
+    display:block;
+    font-family: var(--head);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin-bottom: 8px;
+  }
+  .select-shell{
+    position: relative;
+  }
+  .select-shell::after{
+    content: "";
+    position: absolute;
+    right: 16px; top: 50%;
+    width: 9px; height: 9px;
+    border-right: 2px solid var(--slate);
+    border-bottom: 2px solid var(--slate);
+    transform: translateY(-70%) rotate(45deg);
+    pointer-events: none;
+  }
+  select{
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    background: rgba(10,36,54,0.65);
+    border: 1px solid var(--line);
+    color: var(--mist);
+    font-family: var(--mono);
+    font-size: 15px;
+    padding: 13px 40px 13px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  select:hover{ border-color: rgba(94,234,212,0.4); }
+  select:focus{ border-color: var(--aqua); }
+
+  button.analyze{
+    background: linear-gradient(160deg, var(--aqua), var(--teal));
+    color: var(--ink-deep);
+    border: none;
+    font-family: var(--head);
+    font-weight: 700;
+    font-size: 14.5px;
+    letter-spacing: 0.03em;
+    padding: 14px 28px;
+    border-radius: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+    box-shadow: 0 10px 24px -10px rgba(94,234,212,0.55);
+  }
+  button.analyze:hover{ transform: translateY(-1px); }
+  button.analyze:active{ transform: translateY(0); }
+  button.analyze:disabled{
+    opacity: 0.55;
+    cursor: progress;
+    box-shadow: none;
+  }
+  @media (max-width: 640px){
+    button.analyze{ width: 100%; }
+  }
+
+  .form-msg{
+    margin-top: 14px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--amber);
+    min-height: 18px;
+  }
+
+
+  @media (prefers-reduced-motion: reduce){
+    .node.active .dot{ animation: none; }
+    .wave path{ animation: none; }
+    * { transition-duration: 0.01ms !important; }
+  }
+
+  /* ---------- Results ---------- */
+  .results{
+    margin-top: 56px;
+    display:none;
+  }
+  .results.visible{ display:block; }
+
+  .card{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 26px 28px;
+    margin-bottom: 18px;
+  }
+  .card-head{
+    display:flex;
+    align-items:center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .card-head .idx{
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-deep);
+    background: var(--aqua);
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    flex: none;
+  }
+  .card-head h3{
+    font-family: var(--head);
+    font-size: 16px;
+    margin: 0;
+    color: var(--mist);
+  }
+  .card-head .agent-tag{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--slate);
+    margin-left: auto;
+  }
+
+  .stat-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+  }
+  .stat{
+    background: rgba(10,36,54,0.5);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .stat .val{
+    font-family: var(--mono);
+    font-size: 22px;
+    color: var(--aqua);
+    font-weight: 500;
+  }
+  .stat .lbl{
+    font-family: var(--body);
+    font-size: 12.5px;
+    color: var(--slate);
+    margin-top: 4px;
+  }
+
+  .trend-row{
+    display:flex;
+    align-items:center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .trend-badge{
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    flex: none;
+  }
+  .trend-badge.increasing{ color: var(--amber); border-color: rgba(232,163,61,0.4); }
+  .trend-badge.decreasing{ color: var(--aqua); border-color: rgba(94,234,212,0.4); }
+  .trend-badge.stable{ color: var(--slate); }
+  .sparkline{ flex: none; }
+  .trend-summary{
+    margin: 14px 0 0;
+    color: var(--mist);
+    font-size: 14.5px;
+  }
+
+  .prose{
+    margin: 0;
+    color: var(--mist);
+    font-size: 15px;
+  }
+  ul.strategy-list{
+    margin: 0; padding: 0;
+    list-style: none;
+  }
+  ul.strategy-list li{
+    display:flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14.5px;
+  }
+  ul.strategy-list li:last-child{ border-bottom:none; }
+  ul.strategy-list li::before{
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--aqua);
+    margin-top: 8px;
+    flex: none;
+  }
+
+  .card.report{
+    border-left: 3px solid var(--aqua);
+    background: linear-gradient(180deg, rgba(94,234,212,0.05), var(--panel) 40%);
+  }
+  .card.report .prose{
+    font-family: var(--disp);
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.6;
+  }
+
+  /* ---------- Status states ---------- */
+  .status-banner{
+    display:none;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-top: 24px;
+  }
+  .status-banner.visible{ display:flex; }
+  .status-banner.error{
+    background: rgba(232,163,61,0.10);
+    border: 1px solid rgba(232,163,61,0.35);
+    color: var(--amber);
+  }
+  .status-banner .retry{
+    margin-left: auto;
+    background: none;
+    border: 1px solid rgba(232,163,61,0.5);
+    color: var(--amber);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-family: var(--head);
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+  .status-banner .retry:hover{ background: rgba(232,163,61,0.12); }
+
+  footer{
+    text-align:center;
+    color: var(--slate);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 40px 24px 0;
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><span class="drop"></span> AquaMind</div>
+  <div class="sdg-badge">Supporting <b>UN SDG 6</b> — Clean Water &amp; Sanitation</div>
+</header>
+
+<div class="wrap">
+
+  <section class="hero">
+    <h1>Read the world's <span class="accent">water stress</span>, one basin at a time.</h1>
+    <p>Select a country and year to run AquaMind's multi-agent pipeline — from raw withdrawal data to a plain-language explanation and a recommended course of action.</p>
+    <svg class="wave" viewBox="0 0 640 46" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <linearGradient id="waveGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#5EEAD4"/>
+          <stop offset="100%" stop-color="#1E8A96"/>
+        </linearGradient>
+      </defs>
+      <path d="M0,23 C 60,5 100,41 160,23 C 220,5 260,41 320,23 C 380,5 420,41 480,23 C 540,5 580,41 640,23"/>
+    </svg>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Query parameters</h2>
+    </div>
+
+    <form id="analyzeForm">
+      <div class="controls">
+        <div class="field">
+          <label for="country">Country</label>
+          <div class="select-shell">
+            <select id="country" name="country" required></select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="year">Year</label>
+          <div class="select-shell">
+            <select id="year" name="year" required></select>
+          </div>
+        </div>
+        <button type="submit" class="analyze" id="analyzeBtn">Analyze</button>
+      </div>
+      <div class="form-msg" id="formMsg" role="status" aria-live="polite"></div>
+    </form>
+  </section>
+
+  <section class="results" id="results">
+    <h2 class="section-title">Results</h2>
+    <div id="resultsBody"></div>
+  </section>
+
+</div>
+
+<footer>AquaMind · n8n orchestration · IBM watsonx / Granite reasoning · SDG 6</footer>
+
+<script>
+(function(){
+
+  // ---------------------------------------------------------------
+  // Configuration
+  // ---------------------------------------------------------------
+  // Point this at wherever backend/app.py is actually served.
+  // If Flask serves this file too (static folder), '/analyze' is enough.
+  const API_ENDPOINT = "/analyze";
+
+  const AGENTS = [
+    { key: "data",           label: "Data Agent",           role: "CSV lookup" },
+    { key: "trend",          label: "Trend Agent",          role: "Historical pattern" },
+    { key: "explanation",    label: "Explanation Agent",    role: "Granite · watsonx" },
+    { key: "recommendation", label: "Recommendation Agent", role: "Granite · watsonx" },
+    { key: "report",         label: "Report Agent",         role: "Granite · watsonx" }
+  ];
+
+  const COUNTRIES = [
+    "Afghanistan","Algeria","Argentina","Australia","Bangladesh","Brazil","Canada",
+    "Chile","China","Colombia","Egypt","Ethiopia","France","Germany","Ghana",
+    "India","Indonesia","Iran","Iraq","Israel","Italy","Japan","Jordan","Kenya",
+    "Mexico","Morocco","Nepal","Nigeria","Pakistan","Peru","Philippines","Poland",
+    "Russia","Saudi Arabia","South Africa","South Korea","Spain","Sri Lanka",
+    "Sudan","Tanzania","Thailand","Turkey","Uganda","Ukraine","United Arab Emirates",
+    "United Kingdom","United States","Uzbekistan","Vietnam","Yemen"
+  ];
+
+  const YEAR_MIN = 2000;
+  const YEAR_MAX = 2024;
+
+  // ---------------------------------------------------------------
+  // Populate controls
+  // ---------------------------------------------------------------
+  const countrySel = document.getElementById("country");
+  COUNTRIES.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c; opt.textContent = c;
+    if (c === "India") opt.selected = true;
+    countrySel.appendChild(opt);
+  });
+
+  const yearSel = document.getElementById("year");
+  for (let y = YEAR_MAX; y >= YEAR_MIN; y--) {
+    const opt = document.createElement("option");
+    opt.value = y; opt.textContent = y;
+    if (y === YEAR_MAX) opt.selected = true;
+    yearSel.appendChild(opt);
+  }
+
+  // ---------------------------------------------------------------
+  // Build pipeline nodes
+  // ---------------------------------------------------------------
+  const pipelineEl = document.getElementById("pipeline");
+  AGENTS.forEach((agent, i) => {
+    const node = document.createElement("div");
+    node.className = "node";
+    node.id = "node-" + agent.key;
+    node.innerHTML = `
+      <div class="dot-wrap">
+        <div class="dot">${i + 1}</div>
+        <div class="pipe"><div class="fill"></div></div>
+      </div>
+      <div>
+        <div class="label">${agent.label}</div>
+        <div class="role">${agent.role}</div>
+      </div>
+    `;
+    pipelineEl.appendChild(node);
+  });
+
+  function setNodeState(key, state){
+    const node = document.getElementById("node-" + key);
+    if (!node) return;
+    node.classList.remove("active", "done");
+    if (state) node.classList.add(state);
+  }
+  function resetPipeline(){
+    AGENTS.forEach(a => setNodeState(a.key, null));
+  }
+
+  // ---------------------------------------------------------------
+  // Form handling
+  // ---------------------------------------------------------------
+  const form = document.getElementById("analyzeForm");
+  const analyzeBtn = document.getElementById("analyzeBtn");
+  const formMsg = document.getElementById("formMsg");
+  const errorBanner = document.getElementById("errorBanner");
+  const errorText = document.getElementById("errorText");
+  const retryBtn = document.getElementById("retryBtn");
+  const resultsSection = document.getElementById("results");
+  const resultsBody = document.getElementById("resultsBody");
+
+  let lastPayload = null;
+  let stepTimers = [];
+
+  function clearTimers(){
+    stepTimers.forEach(t => clearTimeout(t));
+    stepTimers = [];
+  }
+
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+    const payload = {
+      country: countrySel.value,
+      year: parseInt(yearSel.value, 10)
+    };
+    if (!payload.country || !payload.year) {
+      formMsg.textContent = "Choose a country and a year before analyzing.";
+      return;
+    }
+    formMsg.textContent = "";
+    lastPayload = payload;
+    runAnalysis(payload);
+  });
+
+  retryBtn.addEventListener("click", function(){
+    if (lastPayload) runAnalysis(lastPayload);
+  });
+
+  function runAnalysis(payload){
+    clearTimers();
+    errorBanner.classList.remove("visible");
+    resultsSection.classList.remove("visible");
+    resultsBody.innerHTML = "";
+    resetPipeline();
+
+    analyzeBtn.disabled = true;
+    analyzeBtn.textContent = "Analyzing…";
+
+    // Progressively light up nodes while the request is in flight,
+    // so the pipeline feels alive during the (single) round trip to app.py.
+    setNodeState("data", "active");
+    stepTimers.push(setTimeout(() => { setNodeState("data", "done"); setNodeState("trend", "active"); }, 500));
+    stepTimers.push(setTimeout(() => { setNodeState("trend", "done"); setNodeState("explanation", "active"); }, 1100));
+    stepTimers.push(setTimeout(() => { setNodeState("explanation", "done"); setNodeState("recommendation", "active"); }, 1800));
+    stepTimers.push(setTimeout(() => { setNodeState("recommendation", "done"); setNodeState("report", "active"); }, 2500));
+
+    fetch(API_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("Backend responded with status " + res.status);
+        return res.json();
+      })
+      .then(data => {
+        clearTimers();
+        AGENTS.forEach(a => setNodeState(a.key, "done"));
+        renderResults(payload, data);
+      })
+      .catch(err => {
+        clearTimers();
+        AGENTS.forEach(a => setNodeState(a.key, null));
+        showError(err);
+      })
+      .finally(() => {
+        analyzeBtn.disabled = false;
+        analyzeBtn.textContent = "Analyze";
+      });
+  }
+
+  function showError(err){
+    errorText.textContent = "Couldn't reach AquaMind's backend (" + (err.message || "network error") + "). Check that app.py is running, then retry.";
+    errorBanner.classList.add("visible");
+  }
+
+  // ---------------------------------------------------------------
+  // Render results
+  // ---------------------------------------------------------------
+  function renderResults(payload, data){
+    data = data || {};
+    const d = data.data || {};
+    const trend = data.trend || {};
+    const explanation = data.explanation || "No explanation returned.";
+    const recommendation = data.recommendation;
+    const report = data.report || "No report returned.";
+
+    let html = "";
+
+    // 1. Data Agent
+    html += card(1, "Data Agent", "not AI", `
+      <div class="stat-grid">
+        ${stat(d.water_stress_index, "Water stress index")}
+        ${stat(d.freshwater_withdrawal, "Freshwater withdrawal")}
+        ${stat(d.renewable_resources, "Renewable resources")}
+        ${stat(d.access_to_safe_water, "Access to safe water")}
+      </div>
+    `);
+
+    // 2. Trend Agent
+    const direction = (trend.direction || "stable").toLowerCase();
+    html += card(2, "Trend Agent", "not AI", `
+      <div class="trend-row">
+        <span class="trend-badge ${direction}">${direction}</span>
+        ${sparkline(trend.history)}
+      </div>
+      <p class="trend-summary">${escapeHtml(trend.summary || "No trend summary available for this selection.")}</p>
+    `);
+
+    // 3. Explanation Agent
+    html += card(3, "Explanation Agent", "Granite · watsonx", `
+      <p class="prose">${escapeHtml(explanation)}</p>
+    `);
+
+    // 4. Recommendation Agent
+    html += card(4, "Recommendation Agent", "Granite · watsonx", renderRecommendation(recommendation));
+
+    // 5. Report Agent
+    html += `
+      <div class="card report">
+        <div class="card-head">
+          <span class="idx">5</span>
+          <h3>Report Agent</h3>
+          <span class="agent-tag">Granite · watsonx</span>
+        </div>
+        <p class="prose">${escapeHtml(report)}</p>
+      </div>
+    `;
+
+    resultsBody.innerHTML = html;
+    resultsSection.classList.add("visible");
+    resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function card(idx, title, tag, bodyHtml){
+    return `
+      <div class="card">
+        <div class="card-head">
+          <span class="idx">${idx}</span>
+          <h3>${title}</h3>
+          <span class="agent-tag">${tag}</span>
+        </div>
+        ${bodyHtml}
+      </div>
+    `;
+  }
+
+  function stat(value, label){
+    const display = (value === undefined || value === null || value === "") ? "—" : value;
+    return `<div class="stat"><div class="val">${escapeHtml(String(display))}</div><div class="lbl">${label}</div></div>`;
+  }
+
+  function renderRecommendation(rec){
+    if (Array.isArray(rec) && rec.length){
+      return `<ul class="strategy-list">${rec.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+    }
+    if (typeof rec === "string" && rec.trim()){
+      return `<p class="prose">${escapeHtml(rec)}</p>`;
+    }
+    return `<p class="prose">No recommendations returned.</p>`;
+  }
+
+  function sparkline(history){
+    if (!Array.isArray(history) || history.length < 2) return "";
+    const values = history.map(p => Number(p.value));
+    const min = Math.min(...values), max = Math.max(...values);
+    const range = (max - min) || 1;
+    const w = 140, h = 34, pad = 3;
+    const step = (w - pad * 2) / (values.length - 1);
+    const points = values.map((v, i) => {
+      const x = pad + i * step;
+      const y = h - pad - ((v - min) / range) * (h - pad * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(" ");
+    return `
+      <svg class="sparkline" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true">
+        <polyline points="${points}" fill="none" stroke="#5EEAD4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `;
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+})();
+</script>
+
+</body>
+</html>
