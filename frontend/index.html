@@ -252,6 +252,115 @@
     min-height: 18px;
   }
 
+  /* ---------- Pipeline ---------- */
+  .pipeline-section{
+    margin-top: 56px;
+  }
+  .pipeline-section h2, .results h2.section-title{
+    font-family: var(--head);
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 0 0 26px;
+  }
+
+  .pipeline{
+    display:flex;
+    align-items:flex-start;
+    justify-content: space-between;
+    gap: 4px;
+  }
+  @media (max-width: 760px){
+    .pipeline{ flex-direction: column; gap: 22px; }
+  }
+
+  .node{
+    display:flex;
+    flex-direction: column;
+    align-items:center;
+    text-align:center;
+    flex: 1;
+    position: relative;
+  }
+  @media (max-width: 760px){
+    .node{ flex-direction: row; text-align:left; gap: 14px; width: 100%; }
+  }
+
+  .node .dot-wrap{
+    display:flex;
+    align-items:center;
+    width: 100%;
+  }
+  @media (max-width: 760px){ .node .dot-wrap{ width: auto; flex-direction: column; } }
+
+  .node .dot{
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--panel);
+    border: 2px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--slate);
+    flex: none;
+    z-index: 2;
+    transition: border-color .3s ease, color .3s ease, box-shadow .3s ease;
+  }
+  .node .pipe{
+    flex: 1;
+    height: 3px;
+    background: var(--line);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+    margin: 0 -2px;
+  }
+  @media (max-width: 760px){
+    .node .pipe{ display:none; }
+  }
+  .node .pipe .fill{
+    position:absolute; inset: 0;
+    width: 0%;
+    background: linear-gradient(90deg, var(--aqua), var(--teal));
+    transition: width .6s ease;
+  }
+  .node:last-child .pipe{ display:none; }
+
+  .node .label{
+    margin-top: 12px;
+    font-family: var(--head);
+    font-weight: 600;
+    font-size: 13.5px;
+    color: var(--mist);
+  }
+  .node .role{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--slate);
+    margin-top: 4px;
+  }
+  @media (max-width: 760px){
+    .node .label, .node .role{ margin-top: 0; }
+  }
+
+  .node.active .dot{
+    border-color: var(--aqua);
+    color: var(--aqua);
+    box-shadow: 0 0 0 4px rgba(94,234,212,0.12);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  .node.done .dot{
+    border-color: var(--aqua);
+    background: var(--aqua);
+    color: var(--ink-deep);
+  }
+  .node.done .pipe .fill{ width: 100%; }
+
+  @keyframes pulse{
+    0%,100%{ box-shadow: 0 0 0 4px rgba(94,234,212,0.12); }
+    50%{ box-shadow: 0 0 0 8px rgba(94,234,212,0.05); }
+  }
 
   @media (prefers-reduced-motion: reduce){
     .node.active .dot{ animation: none; }
@@ -451,6 +560,7 @@
   <section class="panel">
     <div class="panel-head">
       <h2>Query parameters</h2>
+      <span class="hint">POST → backend/app.py</span>
     </div>
 
     <form id="analyzeForm">
@@ -471,6 +581,17 @@
       </div>
       <div class="form-msg" id="formMsg" role="status" aria-live="polite"></div>
     </form>
+  </section>
+
+  <section class="pipeline-section">
+    <h2>Agent pipeline</h2>
+    <div class="pipeline" id="pipeline">
+      <!-- nodes injected by JS -->
+    </div>
+    <div class="status-banner error" id="errorBanner">
+      <span id="errorText">Something went wrong.</span>
+      <button class="retry" id="retryBtn" type="button">Retry</button>
+    </div>
   </section>
 
   <section class="results" id="results">
