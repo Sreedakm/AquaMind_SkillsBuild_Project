@@ -12,7 +12,6 @@ resources_df  = pd.read_csv(os.path.join(DATA_DIR, "water_resources.csv"))
 access_df     = pd.read_csv(os.path.join(DATA_DIR, "water_access.csv"))
 stress_df     = pd.read_csv(os.path.join(DATA_DIR, "water_stress_panel.csv"))
 
-
 def get_country_year_stats(country: str, year: int) -> dict:
     """
     Looks up one country + one year across all 4 sheets
@@ -44,7 +43,7 @@ def get_country_year_stats(country: str, year: int) -> dict:
         return row.iloc[0][column]
 
     return {
-        "water_stress_index": safe_get(stress_row, "water_stress_index"),
+        "water_stress_panel": safe_get(stress_row, "water_stress_pct"),
         "freshwater_withdrawal": safe_get(withdrawal_row, "freshwater_withdrawal_bcm"),
         "renewable_resources": safe_get(resources_row, "renewable_resources_bcm"),
         "access_to_safe_water": safe_get(access_row, "access_percent"),
@@ -64,7 +63,7 @@ def get_trend(country: str, upto_year: int) -> dict:
         return {"direction": "stable", "summary": "Not enough history for this country.", "history": []}
 
     history = [
-        {"year": int(r["year"]), "value": float(r["water_stress_index"])}
+        {"year": int(r["year"]), "value": float(r["water_stress_pct"])}
         for _, r in history_df.iterrows()
     ]
 
