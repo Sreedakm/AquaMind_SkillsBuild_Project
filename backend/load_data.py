@@ -12,41 +12,56 @@ resources_df  = pd.read_csv(os.path.join(DATA_DIR, "water_resources.csv"))
 access_df     = pd.read_csv(os.path.join(DATA_DIR, "water_access.csv"))
 stress_df     = pd.read_csv(os.path.join(DATA_DIR, "water_stress_panel.csv"))
 
+
+def _latest_value_upto_year(df: pd.DataFrame, country: str, year: int, column: str):
+    """
+    Walks backward from `year` and returns the first (value, year) pair
+    where `column` actually has a non-null value for this country.
+    This is stricter than just taking the latest row, since the latest
+    row can exist but still have a NaN in the specific column we want.
+    """
+    subset = df[(df["country"] == country) & (df["year"] <= year) & df[column].notna()]
+    if subset.empty:
+        return None, None
+    best_year = subset["year"].max()
+    row = subset[subset["year"] == best_year].iloc[0]
+    value = row[column]
+    if hasattr(value, "item"):
+        value = value.item()
+    return value, int(best_year)
+
+
 def get_country_year_stats(country: str, year: int) -> dict:
     """
     Looks up one country + one year across all 4 sheets
     and returns a single clean dictionary of stats.
+
+    For each stat, falls back independently to the most recent year
+    <= the requested year that actually has a non-null value for
+    that specific column.
     """
-
-    # NOTE: column names below are PLACEHOLDERS.
-    # Once you paste your real CSV, I'll fix these to match exactly.
-
-    stress_row = stress_df[
-        (stress_df["country"] == country) & (stress_df["year"] == year)
-    ]
-
-    withdrawal_row = freshwater_df[
-        (freshwater_df["country"] == country) & (freshwater_df["year"] == year)
-    ]
-
-    resources_row = resources_df[
-        (resources_df["country"] == country) & (resources_df["year"] == year)
-    ]
-
-    access_row = access_df[
-        (access_df["country"] == country) & (access_df["year"] == year)
-    ]
-
-    def safe_get(row, column):
-        if row.empty or column not in row.columns:
-            return None
-        return row.iloc[0][column]
+    water_stress_panel, water_stress_panel_year = _latest_value_upto_year(
+        stress_df, country, year, "water_stress_pct"
+    )
+    freshwater_withdrawal, freshwater_withdrawal_year = _latest_value_upto_year(
+        freshwater_df, country, year, "withdrawal_bcm"
+    )
+    renewable_resources, renewable_resources_year = _latest_value_upto_year(
+        resources_df, country, year, "total_renewable_bcm"
+    )
+    access_to_safe_water, access_to_safe_water_year = _latest_value_upto_year(
+        access_df, country, year, "basic_water_access_pct"
+    )
 
     return {
-        "water_stress_panel": safe_get(stress_row, "water_stress_pct"),
-        "freshwater_withdrawal": safe_get(withdrawal_row, "freshwater_withdrawal_bcm"),
-        "renewable_resources": safe_get(resources_row, "renewable_resources_bcm"),
-        "access_to_safe_water": safe_get(access_row, "access_percent"),
+        "water_stress_panel": water_stress_panel,
+        "water_stress_panel_year": water_stress_panel_year,
+        "freshwater_withdrawal": freshwater_withdrawal,
+        "freshwater_withdrawal_year": freshwater_withdrawal_year,
+        "renewable_resources": renewable_resources,
+        "renewable_resources_year": renewable_resources_year,
+        "access_to_safe_water": access_to_safe_water,
+        "access_to_safe_water_year": access_to_safe_water_year,
     }
 
 
@@ -65,6 +80,7 @@ def get_trend(country: str, upto_year: int) -> dict:
     history = [
         {"year": int(r["year"]), "value": float(r["water_stress_pct"])}
         for _, r in history_df.iterrows()
+        if pd.notna(r["water_stress_pct"])
     ]
 
     if len(history) < 2:

@@ -560,7 +560,6 @@
   <section class="panel">
     <div class="panel-head">
       <h2>Query parameters</h2>
-      <span class="hint">POST → backend/app.py</span>
     </div>
 
     <form id="analyzeForm">
@@ -780,14 +779,14 @@
     const trend = data.trend || {};
     const explanation = data.explanation || "No explanation returned.";
     const recommendation = data.recommendation;
-    const report = data.report || "No report returned.";
+    const risk = data.risk || null;
 
     let html = "";
 
     // 1. Data Agent
     html += card(1, "Data Agent", "not AI", `
       <div class="stat-grid">
-        ${stat(d.water_stress_index, "Water stress index")}
+        ${stat(d.water_stress_panel, "Water stress index")}
         ${stat(d.freshwater_withdrawal, "Freshwater withdrawal")}
         ${stat(d.renewable_resources, "Renewable resources")}
         ${stat(d.access_to_safe_water, "Access to safe water")}
@@ -813,14 +812,16 @@
     html += card(4, "Recommendation Agent", "Granite · watsonx", renderRecommendation(recommendation));
 
     // 5. Report Agent
+    const riskLevel = risk && risk.risk_level ? risk.risk_level : "Unknown";
+    const riskExplanation = risk && risk.explanation ? risk.explanation : "No risk assessment returned.";
     html += `
       <div class="card report">
         <div class="card-head">
           <span class="idx">5</span>
-          <h3>Report Agent</h3>
-          <span class="agent-tag">Granite · watsonx</span>
+          <h3>Risk Agent</h3>
+          <span class="agent-tag">Gemini · n8n</span>
         </div>
-        <p class="prose">${escapeHtml(report)}</p>
+        <p class="prose"><strong>${escapeHtml(riskLevel)} risk.</strong> ${escapeHtml(riskExplanation)}</p>
       </div>
     `;
 
