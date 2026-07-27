@@ -84,13 +84,7 @@ Develop a **Multi-Agent AI system** that retrieves country-specific water data, 
 
 ---
 
-## 👥 Team
-
-| Member | Responsibilities |
-|---------|------------------|
-| Member 1 | Dataset preparation, n8n workflow, data processing |
-| Member 2 | IBM Granite integration, AI prompts, report generation |
-
+## Live Demo: https://aquamind-skillsbuild-project.onrender.com/
 ---
 
 ## 🙏 Acknowledgements
